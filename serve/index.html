@@ -1,0 +1,138 @@
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+    <script src="https://unpkg.com/vue@2.1.10/dist/vue.min.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/cube-ui/lib/cube.min.js"></script>
+    <script src="https://cdn.bootcss.com/qs/6.6.0/qs.js"></script>
+    <script src="http://res.wx.qq.com/open/js/jweixin-1.4.0.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/cube-ui/lib/cube.min.css">
+    <style>
+        .cube-btn {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <cube-button @click='JsSdkPZ'>拍照</cube-button>
+        <cube-button @click='JsSdkConfig'>JsSdkConfig</cube-button>
+        <cube-button @click='getTokens'>getTokens</cube-button>
+        <cube-button @click='getFollowers'>getFollowers</cube-button>
+        <cube-button @click='auth'>微信登录</cube-button>
+        <cube-button @click='getUser'>获取用户信息</cube-button>
+        <cube-button @click='getJSConfig'>获取JSSKConfig</cube-button>
+        <img v-bind:src="kk" style="display: block;width:300px;height:400px;" alt="">
+        <p>
+            {{kk}}
+        </p>
+    </div>
+    <script>
+        var app = new Vue({
+            el: '#app',
+            data: {
+                value: 'input',
+                kk: ''
+            },
+
+            methods: {
+                JsSdkPZ() {
+                    const res = axios.get('/OAutho/JsSdkConfig', {
+                        params: {
+                            page: window.location.href
+                        }
+                    }).then(res => {
+                        console.log(res)
+                        wx.config({
+                            debug: false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+                            appId: 'wx7a6ff0f36feddc5a', // 必填，公众号的唯一标识
+                            timestamp: res.data.timestamp, // 必填，生成签名的时间戳
+                            nonceStr: res.data.noncestr, // 必填，生成签名的随机串
+                            signature: res.data.signature,// 必填，签名
+                            jsApiList: ['chooseImage'] // 必填，需要使用的JS接口列表
+                        });
+                        const _this = this
+                        wx.chooseImage({
+                            count: 1, // 默认9
+                            sizeType: ['original', 'compressed'], // 可以指定是原图还是压缩图，默认二者都有
+                            sourceType: ['album', 'camera'], // 可以指定来源是相册还是相机，默认二者都有
+                            success: function (res) {
+                                var localIds = res.localIds; // 返回选定照片的本地ID列表，localId可以作为img标签的src属性显示图片
+                                console.log(res)
+                                _this.kk = localIds[0]
+                                // console.log(localIds[0])
+                                // wx.getLocalImgData({
+                                //     localId: localIds[0], // 图片的localID
+                                //     success: function (res) {
+                                //         var localData = res.localData; // localData是图片的base64数据，可以用img标签显示
+                                //        alert(localData)
+                                //         _this.kk = localData
+                                //         // _this.kk = "data:image/jpg;base64,"+localData
+                                //     }
+                                // });
+                            }
+                        });
+                    })
+                },
+                JsSdkConfig() {
+                    axios.get('/OAutho/JsSdkConfig').then((res) => {
+                        console.log('res:', res)
+                    })
+                },
+                getTokens() {
+                    axios.get('/getTokens').then((res) => {
+                        console.log('res:', res)
+                    })
+                },
+                getFollowers() {
+                    axios.get('/getFollowers').then((res) => {
+                        console.log('res', res)
+                    })
+                },
+                auth() {
+                    window.location.href = '/wxAuthorize'
+                },
+                getUser() {
+                    const qs = Qs.parse(window.location.search.substr(1))
+                    axios.get('/getUser', {
+                        params: {
+                            openid: qs.openid
+                        }
+                    }).then((res) => {
+                        console.log('User', res.data)
+                    })
+                },
+                getJSConfig() {
+                    console.log('wx', wx)
+                    // axios.get('/getJSConfig', {
+                    //     params: {
+                    //         url: window.location.href
+                    //     }
+                    // }).then((res) => {
+                    //     console.log('res....', res.data)
+                    //     res.data.jsApiList = ['onMenuShareTimeline', 'onMenuShareAppMessage']
+                    //     wx.config(res.data);
+                    //     wx.ready(function () {
+                    //         console.log('wx.ready......')
+                    //     })
+                    //     wx.getNetworkType({
+                    //         success: function (res) {
+                    //             // 返回网络类型2g，3g，4g，wifi
+                    //             var networkType = res.networkType;
+                    //             console.log('getNetworkType...', networkType)
+                    //         }
+                    //     })
+                    // })
+                }
+            },
+            mounted: function () {
+
+            },
+        });
+    </script>
+</body>
+
+</html>
